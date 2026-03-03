@@ -8,6 +8,9 @@ const CheckStatus = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Railway Backend URL එක මෙතනට ආදේශ කර ඇත
+  const API_BASE_URL = "https://vehicle-service-production-198a.up.railway.app/api";
+
   const handleSearch = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -15,7 +18,8 @@ const CheckStatus = () => {
     setBookingData(null);
 
     try {
-      const res = await axios.get(`http://localhost:5000/api/bookings/status/${vehicleNumber.toUpperCase()}`);
+      // Localhost වෙනුවට Railway URL එක භාවිතා කර සෙවීම සිදු කරයි
+      const res = await axios.get(`${API_BASE_URL}/bookings/status/${vehicleNumber.toUpperCase()}`);
       setBookingData(res.data);
     } catch (err) {
       setError('වාහන අංකය හමු නොවීය. කරුණාකර නිවැරදි අංකය ඇතුළත් කරන්න.');
@@ -27,21 +31,19 @@ const CheckStatus = () => {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-6 overflow-hidden bg-slate-950">
       
-      {/*  Dynamic Background with Fixed Image Link */}
+      {/* Background Section */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-[20000ms] scale-110 motion-safe:animate-pulse"
         style={{ 
-          
           backgroundImage: `url('https://images.pexels.com/photos/3311574/pexels-photo-3311574.jpeg?auto=compress&cs=tinysrgb&w=1920')`, 
         }}
       >
-        {/* Deep Blue & Black Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-slate-950/90 to-blue-900/40 backdrop-blur-sm"></div>
       </div>
 
       <div className="relative z-10 w-full max-w-md bg-black/60 backdrop-blur-2xl border border-white/10 p-8 rounded-[2.5rem] shadow-[0_0_50px_rgba(0,0,0,0.8)]">
         
-        {/* Icon & Header */}
+        {/* Header */}
         <div className="flex flex-col items-center mb-8">
             <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mb-4 border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -129,7 +131,7 @@ const CheckStatus = () => {
   );
 };
 
-// Helper Styles
+// Helper Functions
 const getStatusStyle = (status) => {
   switch (status) {
     case 'Pending': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20 shadow-[0_0_10px_rgba(234,179,8,0.1)]';
