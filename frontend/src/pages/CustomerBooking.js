@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+// ✅ ඔයාගේ Railway Backend URL එක මෙතනට දාන්න
+const API_BASE_URL = 'https://vehicle-service-production-198a.up.railway.app/api';
+
 const CustomerBooking = () => {
   const navigate = useNavigate();
 
@@ -21,42 +24,38 @@ const CustomerBooking = () => {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
 
+  // 1. සර්විස් වර්ග (Services) ටික Backend එකෙන් ගෙන්වා ගැනීම
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/services');
+        // ✅ Localhost වෙනුවට Railway URL එක පාවිච්චි කරයි
+        const res = await axios.get(`${API_BASE_URL}/services`);
         setServices(res.data);
         if (res.data.length > 0) {
           setFormData(prev => ({ ...prev, serviceType: res.data[0].serviceName }));
         }
       } catch (err) {
         console.error("Error fetching services:", err);
+        setServerError("Could not load services from the server.");
       }
     };
     fetchServices();
   }, []);
 
+  // 2. Booking එක Submit කිරීම
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); 
     setServerError('');
     
     try {
-      const response = await axios.post('http://localhost:5000/api/bookings', formData);
+      // ✅ Localhost වෙනුවට Railway URL එක පාවිච්චි කරයි
+      const response = await axios.post(`${API_BASE_URL}/bookings`, formData);
       if (response.status === 201 || response.status === 200) {
         navigate('/success'); 
       }
     } catch (error) {
-      /* Check for 401 (Unauthorized) or 403 (Forbidden) errors.
-         If detected, clear local storage and redirect to the login page.
-      */
-      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-        localStorage.clear(); 
-        navigate('/login'); 
-        return;
-      }
-
-      const msg = error.response?.data?.message || "The booking could not be forwarded.";
+      const msg = error.response?.data?.message || "The booking could not be forwarded. Please try again.";
       setServerError(msg);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
@@ -216,7 +215,6 @@ const CustomerBooking = () => {
             <span className="text-[11px] font-black uppercase tracking-widest text-gray-300 group-hover:text-white transition-colors">Track My Vehicle Status</span>
           </Link>
 
-          {/* Admin Login Access Link */}
           <Link 
             to="/admin-login" 
             className="text-[10px] font-bold text-white/20 hover:text-blue-400 uppercase tracking-[0.2em] transition-colors duration-300"
