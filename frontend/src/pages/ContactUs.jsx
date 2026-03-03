@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+// ✅ ඔයාගේ Railway Backend URL එක මෙතනට ඇතුළත් කළා
+const API_BASE_URL = 'https://vehicle-service-production-198a.up.railway.app/api';
+
 const ContactUs = () => {
-  //  hold the data in the form
+  // hold the data in the form
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -17,20 +20,21 @@ const ContactUs = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Form  Submit
+  // Form Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/messages', formData);
-      if (response.status === 201) {
+      // ✅ Localhost වෙනුවට Railway URL එක පාවිච්චි කරයි
+      const response = await axios.post(`${API_BASE_URL}/messages`, formData);
+      if (response.status === 201 || response.status === 200) {
         setSent(true);
         setFormData({ fullName: '', email: '', message: '' }); 
         setTimeout(() => setSent(false), 5000); 
       }
     } catch (error) {
       console.error("Message error:", error);
-      alert("The message could not be sent. Try later.");
+      alert("පණිවිඩය යැවීමට නොහැකි විය. පසුව උත්සාහ කරන්න.");
     } finally {
       setLoading(false);
     }
