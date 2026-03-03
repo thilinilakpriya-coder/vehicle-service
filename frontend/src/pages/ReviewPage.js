@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+// ✅ ඔයාගේ Railway Backend URL එක මෙතනට ඇතුළත් කළා
+const API_BASE_URL = 'https://vehicle-service-production-198a.up.railway.app/api';
+
 const ReviewPage = () => {
     const [reviews, setReviews] = useState([]);
     const [formData, setFormData] = useState({
@@ -8,13 +11,15 @@ const ReviewPage = () => {
         rating: 5,
         comment: ''
     });
+    const [loading, setLoading] = useState(false);
 
+    // ✅ Approved Reviews පමණක් Fetch කිරීම
     const fetchReviews = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/reviews/approved');
+            const res = await axios.get(`${API_BASE_URL}/reviews/approved`);
             setReviews(res.data);
         } catch (err) {
-            console.error(err);
+            console.error("Reviews fetching error:", err);
         }
     };
 
@@ -22,14 +27,19 @@ const ReviewPage = () => {
         fetchReviews();
     }, []);
 
+    // ✅ Review එකක් Submit කිරීම
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         try {
-            await axios.post('http://localhost:5000/api/reviews', formData);
-            alert("The review was sent! Will be shown after admin approval.");
+            await axios.post(`${API_BASE_URL}/reviews`, formData);
+            alert("ස්තුතියි! ඔබගේ අදහස අපට ලැබුණා. Admin අනුමත කළ පසු එය මෙහි දිස්වනු ඇත.");
             setFormData({ customerName: '', rating: 5, comment: '' });
         } catch (err) {
-            alert("An error occurred!");
+            console.error("Submit error:", err);
+            alert("Review එක යැවීමට නොහැකි විය. පසුව උත්සාහ කරන්න.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -57,7 +67,7 @@ const ReviewPage = () => {
 
                 <div className="grid lg:grid-cols-12 gap-12 items-start">
                     
-                    {/* Left: Review Form (4 Columns) */}
+                    {/* Left: Review Form */}
                     <div className="lg:col-span-5 bg-white/[0.03] backdrop-blur-2xl border border-white/10 p-10 rounded-[2.5rem] shadow-2xl sticky top-28">
                         <h4 className="text-2xl font-black mb-8 italic uppercase tracking-tighter">
                             Write a <span className="text-blue-500">Review</span> ✍️
@@ -101,13 +111,13 @@ const ReviewPage = () => {
                                 />
                             </div>
 
-                            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl transition-all duration-500 shadow-xl shadow-blue-600/20 uppercase tracking-widest text-xs italic group">
-                                <span className="group-hover:mr-2 transition-all">Submit Review</span> 🚀
+                            <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl transition-all duration-500 shadow-xl shadow-blue-600/20 uppercase tracking-widest text-xs italic group">
+                                <span className="group-hover:mr-2 transition-all">{loading ? 'Submitting...' : 'Submit Review'}</span> 🚀
                             </button>
                         </form>
                     </div>
 
-                    {/* Right: Review List (7 Columns) */}
+                    {/* Right: Review List */}
                     <div className="lg:col-span-7 space-y-8">
                         <div className="flex items-center justify-between">
                             <h4 className="text-xl font-black uppercase tracking-tighter italic">
@@ -130,7 +140,7 @@ const ReviewPage = () => {
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="flex items-center gap-4">
                                                 <div className="h-12 w-12 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center font-black text-xl italic shadow-lg shadow-blue-500/20">
-                                                    {r.customerName.charAt(0)}
+                                                    {r.customerName ? r.customerName.charAt(0) : '?'}
                                                 </div>
                                                 <div>
                                                     <h5 className="font-black text-white leading-none uppercase tracking-tight text-lg">{r.customerName}</h5>
@@ -159,28 +169,13 @@ const ReviewPage = () => {
                 </div>
             </div>
 
-            {/* Custom CSS for the page */}
+            {/* Custom CSS */}
             <style jsx>{`
-                .custom-review-scroll::-webkit-scrollbar {
-                    width: 5px;
-                }
-                .custom-review-scroll::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                .custom-review-scroll::-webkit-scrollbar-thumb {
-                    background: rgba(59, 130, 246, 0.2);
-                    border-radius: 20px;
-                }
-                .custom-review-scroll::-webkit-scrollbar-thumb:hover {
-                    background: rgba(59, 130, 246, 0.5);
-                }
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(10px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                .animate-fadeIn {
-                    animation: fadeIn 0.8s ease-out forwards;
-                }
+                .custom-review-scroll::-webkit-scrollbar { width: 5px; }
+                .custom-review-scroll::-webkit-scrollbar-track { background: transparent; }
+                .custom-review-scroll::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.2); border-radius: 20px; }
+                @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+                .animate-fadeIn { animation: fadeIn 0.8s ease-out forwards; }
             `}</style>
         </div>
     );
