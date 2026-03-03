@@ -5,19 +5,16 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
-// Config Imports
 const connectDB = require('./config/db');
-
 const app = express();
 
 // Database Connection
 connectDB();
 
-// Security Middleware
+// ✅ Security & CORS Fix
 app.use(helmet()); 
-
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000', 
+    origin: '*', // ඕනෑම තැනක සිට Frontend එකට connect වීමට ඉඩ ලබා දෙයි
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
     credentials: true
@@ -25,7 +22,7 @@ app.use(cors({
 
 app.use(express.json({ limit: '10kb' }));
 
-// NoSQL Injection Protection Middleware
+// NoSQL Injection Protection
 app.use((req, res, next) => {
     const sanitize = (obj) => {
         if (obj instanceof Object) {
@@ -45,19 +42,15 @@ app.use((req, res, next) => {
     next();
 });
 
-// Rate Limiting 
+// Rate Limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
     max: 1000, 
-    message: { message: "Too many requests, please try again in 15 minutes." },
-    standardHeaders: true,
-    legacyHeaders: false,
+    message: { message: "Too many requests, please try again later." }
 });
 app.use('/api/', limiter);
 
-/**
- * AUTH MIDDLEWARE
- */
+// AUTH MIDDLEWARE
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     let token = authHeader && authHeader.split(' ')[1]; 
@@ -65,22 +58,17 @@ const verifyToken = (req, res, next) => {
 
     if (!token) return res.status(401).json({ message: "Access Denied: No Token Provided!" });
 
-    // JWT Secret එක .env එකෙන් විතරක්ම ගන්නවා (Default අගයන් තැබීම අනතුරුදායකයි)
-    const JWT_SECRET = process.env.JWT_SECRET;
-
-    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) return res.status(403).json({ message: "Invalid or Expired Token!" });
         req.user = decoded;
         next();
     });
 };
 
-// Public Routes
+// Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/services', require('./routes/serviceRoutes')); 
 app.use('/api/bookings', require('./routes/bookingRoutes')); 
-
-// Protected Routes (verifyToken middleware එක අවශ්‍ය නම් මෙතනට දාන්න පුළුවන්)
 app.use('/api/messages', require('./routes/messageRoutes')); 
 app.use('/api/reviews', require('./routes/reviews'));
 
@@ -92,5 +80,5 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`🚀 Secure Server active on port ${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
 });
