@@ -15,10 +15,10 @@ const AdminLogin = () => {
     
     try {
       //  API call to your Backend
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
-        username: credentials.username.trim(),
-        password: credentials.password.trim()
-      });
+     const response = await axios.post('https://vehicle-service-production-198a.up.railway.app/api/auth/login', {
+  username: credentials.username.trim(),
+  password: credentials.password.trim()
+});
       
       if (response.data.success) {
         console.log("Login Success!");
